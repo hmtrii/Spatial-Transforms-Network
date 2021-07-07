@@ -1,20 +1,9 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torchvision
-from torchvision import datasets, transforms
-import matplotlib.pyplot as plt
-import numpy as np
 from model import STN
-
-from albumentations import (
-    Resize, Rotate, HorizontalFlip, VerticalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
-    Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
-    IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, IAAPiecewiseAffine, RandomResizedCrop,
-    IAASharpen, IAAEmboss, RandomBrightnessContrast, Flip, OneOf, Compose, Normalize, Cutout, CoarseDropout, ShiftScaleRotate, CenterCrop, Resize
-)
-from albumentations.pytorch import ToTensorV2
+from dataset_utils import prepare_dataloader
+import pandas as pd
+from sklearn.model_selection import train_test_split
+import cv2
 
 def train_one_epoch():
   pass
@@ -22,16 +11,19 @@ def train_one_epoch():
 def val_one_epoch():
   pass
 
-def prepare_dataloader():
-  pass
-
 if __name__ == '__main__':
+  # parameters
+  img_prefix = r'd:\UIT\ChestXray\data\train'
+  batch_size = 16
+  num_workers = 2
+  img_size = 512
+
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-  model = STN().to(device)
+  # model = STN().to(device)
+  df = pd.read_csv(r'd:\UIT\ChestXray\data\stratified5folds.csv')
+  train_df, val_df = train_test_split(df, test_size=0.2)
+  train_loader, val_loader = prepare_dataloader(train_df, val_df, img_prefix, img_size, batch_size, num_workers)
   
-  # transforms=Compose([
-  #           Resize(img_sz, img_sz, always_apply=True),
-  #           Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], max_pixel_value=255.0, p=1.0),
-  #           ToTensorV2(p=1.0),
-  #           ], p=1.))
-  
+  for img in train_loader:
+    print(img.shape)
+    break

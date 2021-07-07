@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torchvision.models as models
 
 class STN(nn.Module):
-  def __init__(self):
+  def __init__(self, ):
     super(STN, self).__init__()
     self.backbone = models.resnet18()
     self.backbone.fc = nn.Linear(512, 3 * 2)
