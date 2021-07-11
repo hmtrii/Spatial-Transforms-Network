@@ -1,3 +1,4 @@
+from torch.utils import data
 from dataset import CXRDataset
 from utils import get_transforms
 from torch.utils.data import DataLoader
@@ -20,4 +21,7 @@ def prepare_dataloader(train_df, val_df, img_prefix, img_size, batch_size, num_w
     num_workers=num_wokers
   )
   
-  return train_loader, val_loader
+  dataloaders = {'train': train_loader,
+                  'val': val_loader}
+
+  return dataloaders
