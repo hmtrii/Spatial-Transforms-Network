@@ -1,11 +1,10 @@
-from random import shuffle
 from dataset import CXRDataset
 from utils import get_transforms
 from torch.utils.data import DataLoader
 
-def prepare_dataloader(train_df, val_df, img_prefix, img_size, batch_size, num_wokers):
-  train_dataset = CXRDataset(train_df, img_prefix, transforms=get_transforms(img_size))
-  val_dataset = CXRDataset(val_df, img_prefix, transforms=get_transforms(img_size))
+def prepare_dataloader(train_df, val_df, img_prefix, img_size, batch_size, num_wokers,canonical_path=None):
+  train_dataset = CXRDataset(train_df, img_prefix, canonical_path=canonical_path, transforms=get_transforms(img_size))
+  val_dataset = CXRDataset(val_df, img_prefix, canonical_path=canonical_path, transforms=get_transforms(img_size))
 
   train_loader = DataLoader(
     train_dataset,
