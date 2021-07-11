@@ -68,7 +68,7 @@ if __name__ == '__main__':
   T_0 = 10
   min_lr = 1e-6
   num_epochs = 50
-  canonical_path = './canonical.png'
+  canonical_path = './dataset/canonical/canonical.png'
 
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   model = STN().to(device)
