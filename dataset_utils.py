@@ -1,4 +1,3 @@
-from torch.utils import data
 from dataset import CXRDataset
 from utils import get_transforms
 from torch.utils.data import DataLoader

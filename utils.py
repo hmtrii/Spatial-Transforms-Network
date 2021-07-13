@@ -8,7 +8,6 @@ from albumentations import (
     Resize, Compose, Normalize, Resize
 )
 from albumentations.pytorch import ToTensorV2
-from torch.utils import data
 import torchvision
 from tqdm import tqdm
 
@@ -42,24 +41,24 @@ def get_transforms(img_size):
           ToTensorV2(p=1.0),
           ], p=1.)
 
-def train_model(model, num_epochs, dataloader, device, criterion, optimizer, scheduler, scaler=None):
+def train_model(opt, model, num_epochs, dataloader, device, criterion, optimizer, scheduler, scaler=None):
   best_model_wts = copy.deepcopy(model.state_dict())
   best_loss = 0
-  for epoch in range(1, num_epochs + 1):
+  for epoch in range(1, num_epochs+1):
     last_model, best_model = run_one_epoch(epoch, model, dataloader, device, criterion, optimizer, scheduler, best_loss, best_model_wts, scaler)
-  
-  return last_model, best_model
+    torch.save(last_model.state_dict(), os.path.join(opt.work_dir, 'last_model.pth'))
+    torch.save(best_model.state_dict(), os.path.join(opt.work_dir, 'best_mode.pth'))
 
 def run_one_epoch(epoch, model, dataloader, device, criterion, optimizer, scheduler, best_loss, best_model_wts, scaler=None):
   best_model = copy.deepcopy(model)
   for phase in ['train', 'val']:
     if phase == 'train':
-      model.train()
+      model.train() 
     else:
       model.eval()
     
     running_loss = 0
-    pbar = tqdm(dataloader[phase], total=len(dataloader), desc=f"{phase}: {epoch}")
+    pbar = tqdm(dataloader[phase], total=len(dataloader))
     for imgs, targets in pbar:
       imgs = imgs.to(device).float()
       targets = targets.to(device).float()
@@ -83,19 +82,25 @@ def run_one_epoch(epoch, model, dataloader, device, criterion, optimizer, schedu
           else:
             loss.backward()
             optimizer.step()
+          description = f'Training epoch {epoch}: loss: {loss.item():.4f}'
+        else:
+          description = f'Validating epoch {epoch}: loss: {loss.item():.4f}'
+          
+        running_loss += loss.item()
+        pbar.set_description(description)
 
-      running_loss += loss.item() * imgs.size(0)
+    epoch_loss = running_loss / len(dataloader[phase])
 
     if phase == 'train':
       scheduler.step()
+      print(f'\tTrain loss: {epoch_loss:.4f}')
+    else:
+      print(f'\tVal loss: {epoch_loss:.4f}')
     
-    epoch_loss = running_loss / len(dataloader[phase])
-    description = f'epoch {epoch} loss: {epoch_loss:.4f}'
-    pbar.set_description(description)
-
     if phase == 'val' and epoch_loss < best_loss:
       best_loss = epoch_loss
       best_model_wts = copy.deepcopy(model.state_dict())
       best_model.load_state_dict(best_model_wts)
+      print(f'Save best model at epoch {epoch}')
 
   return model, best_model
